@@ -22,11 +22,12 @@ class TestNode(unittest.TestCase):
         def node_callback(event, main_node, connected_node, data):
             global message
             try:
+# sourcery skip: no-conditionals-in-tests
                 if event == "node_message":
-                    message.append(event + ":" + main_node.id + ":" + connected_node.id + ":" + str(data))
+                    message.append(f"{event}:{main_node.id}:{connected_node.id}:{str(data)}")
 
             except Exception as e:
-                message = "exception: " + str(e) 
+                message = f"exception: {str(e)}" 
 
         node1 = Node(host="localhost", port=10001, callback=node_callback)
         node2 = Node(host="localhost", port=10002, callback=node_callback)
@@ -40,11 +41,11 @@ class TestNode(unittest.TestCase):
 
         node1.send_to_nodes("Hi from node 1!", compression='zlib')
         time.sleep(1)
-        node1_message = message
+        node1_message = message  # noqa: F841
 
         node2.send_to_nodes("Hi from node 2!", compression='zlib')
         time.sleep(1)
-        node2_message = message
+        node2_message = message  # noqa: F841
 
         node1.stop()
         node2.stop()
@@ -52,7 +53,7 @@ class TestNode(unittest.TestCase):
         node2.join()
 
         time.sleep(10)
-        
+
         self.assertIn("Hi from node", message[0], "The message is not correctly received")
         self.assertIn("Hi from node", message[1], "The message is not correctly received")
 
@@ -65,11 +66,12 @@ class TestNode(unittest.TestCase):
         def node_callback(event, main_node, connected_node, data):
             global message
             try:
+# sourcery skip: no-conditionals-in-tests
                 if event == "node_message":
-                    message.append(event + ":" + main_node.id + ":" + connected_node.id + ":" + str(data))
+                    message.append(f"{event}:{main_node.id}:{connected_node.id}:{str(data)}")
 
             except Exception as e:
-                message = "exception: " + str(e) 
+                message = f"exception: {str(e)}" 
 
         node1 = Node(host="localhost", port=10001, callback=node_callback)
         node2 = Node(host="localhost", port=10002, callback=node_callback)
@@ -83,11 +85,11 @@ class TestNode(unittest.TestCase):
 
         node1.send_to_nodes("Hi from node 1!", compression='lzma')
         time.sleep(1)
-        node1_message = message
+        node1_message = message  # noqa: F841
 
         node2.send_to_nodes("Hi from node 2!", compression='lzma')
         time.sleep(1)
-        node2_message = message
+        node2_message = message  # noqa: F841
 
         node1.stop()
         node2.stop()
@@ -95,7 +97,7 @@ class TestNode(unittest.TestCase):
         node2.join()
 
         time.sleep(10)
-        
+
         self.assertIn("Hi from node", message[0], "The message is not correctly received")
         self.assertIn("Hi from node", message[1], "The message is not correctly received")
 
@@ -108,11 +110,12 @@ class TestNode(unittest.TestCase):
         def node_callback(event, main_node, connected_node, data):
             global message
             try:
+# sourcery skip: no-conditionals-in-tests
                 if event == "node_message":
-                    message.append(event + ":" + main_node.id + ":" + connected_node.id + ":" + str(data))
+                    message.append(f"{event}:{main_node.id}:{connected_node.id}:{str(data)}")
 
             except Exception as e:
-                message = "exception: " + str(e) 
+                message = f"exception: {str(e)}" 
 
         node1 = Node(host="localhost", port=10001, callback=node_callback)
         node2 = Node(host="localhost", port=10002, callback=node_callback)
@@ -126,11 +129,11 @@ class TestNode(unittest.TestCase):
 
         node1.send_to_nodes("Hi from node 1!", compression='bzip2')
         time.sleep(1)
-        node1_message = message
+        node1_message = message  # noqa: F841
 
         node2.send_to_nodes("Hi from node 2!", compression='bzip2')
         time.sleep(1)
-        node2_message = message
+        node2_message = message  # noqa: F841
 
         node1.stop()
         node2.stop()
@@ -138,7 +141,7 @@ class TestNode(unittest.TestCase):
         node2.join()
 
         time.sleep(10)
-        
+
         self.assertIn("Hi from node", message[0], "The message is not correctly received")
         self.assertIn("Hi from node", message[1], "The message is not correctly received")
 
@@ -151,11 +154,12 @@ class TestNode(unittest.TestCase):
         def node_callback(event, main_node, connected_node, data):
             global message
             try:
+# sourcery skip: no-conditionals-in-tests
                 if event == "node_message":
-                    message.append(event + ":" + main_node.id + ":" + connected_node.id + ":" + str(data))
+                    message.append(f"{event}:{main_node.id}:{connected_node.id}:{str(data)}")
 
             except Exception as e:
-                message = "exception: " + str(e) 
+                message = f"exception: {str(e)}" 
 
         node1 = Node(host="localhost", port=10001, callback=node_callback)
         node2 = Node(host="localhost", port=10002, callback=node_callback)
@@ -169,11 +173,11 @@ class TestNode(unittest.TestCase):
 
         node1.send_to_nodes("Hi from node 1!", compression='unknown')
         time.sleep(1)
-        node1_message = message
+        node1_message = message  # noqa: F841
 
         node2.send_to_nodes("Hi from node 2!", compression='unknown')
         time.sleep(1)
-        node2_message = message
+        node2_message = message  # noqa: F841
 
         node1.stop()
         node2.stop()
@@ -181,7 +185,7 @@ class TestNode(unittest.TestCase):
         node2.join()
 
         time.sleep(10)
-        
+
         self.assertEqual(len(message), 0, "No messages should have been send")
 
 if __name__ == '__main__':

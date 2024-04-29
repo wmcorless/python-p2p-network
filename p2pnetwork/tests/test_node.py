@@ -71,11 +71,12 @@ class TestNode(unittest.TestCase):
         def node_callback(event, main_node, connected_node, data):
             global message
             try:
+# sourcery skip: no-conditionals-in-tests
                 if event == "node_message":
-                    message = event + ":" + main_node.id + ":" + connected_node.id + ":" + str(data)
+                    message = f"{event}:{main_node.id}:{connected_node.id}:{str(data)}"
 
             except Exception as e:
-                message = "exception: " + str(e) 
+                message = f"exception: {str(e)}" 
 
         node1 = Node(host="localhost", port=10001, callback=node_callback)
         node2 = Node(host="localhost", port=10002, callback=node_callback)
@@ -101,9 +102,17 @@ class TestNode(unittest.TestCase):
         node2.join()
 
         time.sleep(10)
-        
-        self.assertEqual("node_message:" + node2.id + ":" + node1.id + ":Hi from node 1!", node1_message, "The message is not correctly received by node 2")
-        self.assertEqual("node_message:" + node1.id + ":" + node2.id + ":Hi from node 2!", node2_message, "The message is not correctly received by node 1")
+
+        self.assertEqual(
+            f"node_message:{node2.id}:{node1.id}:Hi from node 1!",
+            node1_message,
+            "The message is not correctly received by node 2",
+        )
+        self.assertEqual(
+            f"node_message:{node1.id}:{node2.id}:Hi from node 2!",
+            node2_message,
+            "The message is not correctly received by node 1",
+        )
 
     def test_node_complete(self):
         """Testing the complete sequence of the Node based on Samuel complete_test.py."""
@@ -115,11 +124,12 @@ class TestNode(unittest.TestCase):
         def node_callback(event, main_node, connected_node, data):
             global message
             try:
+# sourcery skip: no-conditionals-in-tests
                 if event == "node_message":
-                    message.append(event + ":" + main_node.id + ":" + connected_node.id + ":" + str(data))
+                    message.append(f"{event}:{main_node.id}:{connected_node.id}:{str(data)}")
 
             except Exception as e:
-                message.append("exception: " + str(e))
+                message.append(f"exception: {str(e)}")
 
         node_0 = Node(host='127.0.0.1', port=10000, callback=node_callback)
         node_1 = Node(host='127.0.0.1', port=10001, callback=node_callback)
@@ -137,14 +147,20 @@ class TestNode(unittest.TestCase):
         node_0_connections = node_0.nodes_outbound
         step_1_node_0_total_connections = len(node_0_connections) # should be 1
         step_1_node_0_connection_node = "none"
+# sourcery skip: no-conditionals-in-tests
         if step_1_node_0_total_connections > 0:
-            step_1_node_0_connection_node = node_0_connections[0].id + ":" + node_0_connections[0].host + ":" + str(node_0_connections[0].port) # node1.id:127.0.0.1:10001
+            step_1_node_0_connection_node = (
+                f"{node_0_connections[0].id}:{node_0_connections[0].host}:"
+                + str(node_0_connections[0].port)
+            )
 
         node_1_connections = node_1.nodes_inbound
         step_1_node_1_total_connections = len(node_1_connections)
         step_1_node_1_connection_node = "none"
         if step_1_node_1_total_connections > 0:
-            step_1_node_1_connection_node = node_1_connections[0].id + ":" + node_1_connections[0].host # node0.id:127.0.0.1, inbound port is port of client
+            step_1_node_1_connection_node = (
+                f"{node_1_connections[0].id}:{node_1_connections[0].host}"
+            )
 
         node_2.connect_with_node('127.0.0.1', 10000)
         time.sleep(2)
@@ -153,13 +169,16 @@ class TestNode(unittest.TestCase):
         step_2_node_2_total_connections = len(node_2_connections) # should be 1
         step_2_node_2_connection_node = "none"
         if step_2_node_2_total_connections > 0:
-            step_2_node_2_connection_node = node_2_connections[0].id + ":" + node_2_connections[0].host + ":" + str(node_2_connections[0].port) # node0.id:127.0.0.1:10000
+            step_2_node_2_connection_node = f"{node_2_connections[0].id}:{node_2_connections[0].host}:{str(node_2_connections[0].port)}"
 
         node_0_connections = node_0.nodes_inbound
         step_2_node_0_total_connections = len(node_2_connections) # should be 1
         step_2_node_0_connection_node = "none"
+# sourcery skip: no-conditionals-in-tests
         if step_2_node_0_total_connections > 0:
-            step_2_node_0_connection_node = node_0_connections[0].id + ":" + node_0_connections[0].host # node2.id:127.0.0.1
+            step_2_node_0_connection_node = (
+                f"{node_0_connections[0].id}:{node_0_connections[0].host}"
+            )
 
         # Send messages
         node_0.send_to_nodes('hello from node 0')
@@ -172,17 +191,33 @@ class TestNode(unittest.TestCase):
         node_0.join()
         node_1.join()
         node_2.join()
-       
+
         # Perform the asserts!
         self.assertEqual(step_1_node_0_total_connections, 1, "Node 0 should have one outbound connection.")
-        self.assertEqual(step_1_node_0_connection_node, node_1.id + ":127.0.0.1:10001", "Node 0 should be connected (outbound) with node 1.")
+        self.assertEqual(
+            step_1_node_0_connection_node,
+            f"{node_1.id}:127.0.0.1:10001",
+            "Node 0 should be connected (outbound) with node 1.",
+        )
         self.assertEqual(step_1_node_1_total_connections, 1, "Node 1 should have one inbound connection.")
-        self.assertEqual(step_1_node_1_connection_node, node_0.id + ":127.0.0.1", "Node 1 should be connected (inbound) with node 0.")
+        self.assertEqual(
+            step_1_node_1_connection_node,
+            f"{node_0.id}:127.0.0.1",
+            "Node 1 should be connected (inbound) with node 0.",
+        )
 
-        self.assertEqual(step_2_node_2_total_connections, 1, "Node 2 shoud have one outbound connection.")
-        self.assertEqual(step_2_node_2_connection_node, node_0.id + ":127.0.0.1:10000", "Node 2 should be connected (outbound) with node 0.")
+        self.assertEqual(step_2_node_2_total_connections, 1, "Node 2 should have one outbound connection.")
+        self.assertEqual(
+            step_2_node_2_connection_node,
+            f"{node_0.id}:127.0.0.1:10000",
+            "Node 2 should be connected (outbound) with node 0.",
+        )
         self.assertEqual(step_2_node_0_total_connections, 1, "Node 0 should have one inbound connection.")
-        self.assertEqual(step_2_node_0_connection_node, node_2.id + ":127.0.0.1", "Node 0 should be connected (inbound) with node 2.")
+        self.assertEqual(
+            step_2_node_0_connection_node,
+            f"{node_2.id}:127.0.0.1",
+            "Node 0 should be connected (inbound) with node 2.",
+        )
 
         self.assertTrue(len(message) > 0, "There should have been sent some messages around!")
         self.assertTrue(len(message) == 4, "There should have been sent 4 message around!")
@@ -196,12 +231,12 @@ class TestNode(unittest.TestCase):
         # Using the callback we are able to see the events and messages of the Node
         def node_callback(event, main_node, connected_node, data):
             global message
-            message.append(event + ":" + main_node.id)                
+            message.append(f"{event}:{main_node.id}")                
 
         node_0 = Node(host='127.0.0.1', port=10000, callback=node_callback)
         node_1 = Node(host='127.0.0.1', port=10001, callback=node_callback)
         node_2 = Node(host='127.0.0.1', port=10002, callback=node_callback)
-        
+
         node_0.start()
         node_1.start()
         node_2.start()
@@ -235,34 +270,109 @@ class TestNode(unittest.TestCase):
 
         # Perform the asserts!
         self.assertTrue(len(message) > 0, "There should have been sent some messages around!")
-        self.assertTrue(len(message) == 15, "There should have been sent 15 message around!"+ str(len(message)) + " messages\n" + dt)
+        self.assertTrue(
+            len(message) == 15,
+            (
+                (
+                    f"There should have been sent 15 message around!{len(message)}"
+                    + " messages\n"
+                )
+                + dt
+            ),
+        )
 
+# sourcery skip: no-conditionals-in-tests
         if "outbound" in message[0]:
-            self.assertEqual(message[0],  "outbound_node_connected:" + node_0.id, "Event should have occurred")
-            self.assertEqual(message[1],  "inbound_node_connected:" + node_1.id, "Event should have occurred")
+            self.assertEqual(
+                message[0],
+                f"outbound_node_connected:{node_0.id}",
+                "Event should have occurred",
+            )
+            self.assertEqual(
+                message[1],
+                f"inbound_node_connected:{node_1.id}",
+                "Event should have occurred",
+            )
         else:
-            self.assertEqual(message[1],  "outbound_node_connected:" + node_0.id, "Event should have occurred")
-            self.assertEqual(message[0],  "inbound_node_connected:" + node_1.id, "Event should have occurred")
-        
+            self.assertEqual(
+                message[1],
+                f"outbound_node_connected:{node_0.id}",
+                "Event should have occurred",
+            )
+            self.assertEqual(
+                message[0],
+                f"inbound_node_connected:{node_1.id}",
+                "Event should have occurred",
+            )
+
         if "outbound" in message[2]:
-            self.assertEqual(message[2],  "outbound_node_connected:" + node_2.id, "Event should have occurred")
-            self.assertEqual(message[3],  "inbound_node_connected:" + node_0.id, "Event should have occurred")
+            self.assertEqual(
+                message[2],
+                f"outbound_node_connected:{node_2.id}",
+                "Event should have occurred",
+            )
+            self.assertEqual(
+                message[3],
+                f"inbound_node_connected:{node_0.id}",
+                "Event should have occurred",
+            )
         else:
-            self.assertEqual(message[3],  "outbound_node_connected:" + node_2.id, "Event should have occurred")
-            self.assertEqual(message[2],  "inbound_node_connected:" + node_0.id, "Event should have occurred")
+            self.assertEqual(
+                message[3],
+                f"outbound_node_connected:{node_2.id}",
+                "Event should have occurred",
+            )
+            self.assertEqual(
+                message[2],
+                f"inbound_node_connected:{node_0.id}",
+                "Event should have occurred",
+            )
 
-        if  node_2.id in message[4]:
-            self.assertEqual(message[4],  "node_message:" + node_2.id, "Event should have occurred")
-            self.assertEqual(message[5],  "node_message:" + node_1.id, "Event should have occurred")
+# sourcery skip: no-conditionals-in-tests
+        if node_2.id in message[4]:
+            self.assertEqual(
+                message[4],
+                f"node_message:{node_2.id}",
+                "Event should have occurred",
+            )
+            self.assertEqual(
+                message[5],
+                f"node_message:{node_1.id}",
+                "Event should have occurred",
+            )
         else:
-            self.assertEqual(message[5],  "node_message:" + node_2.id, "Event should have occurred")
-            self.assertEqual(message[4],  "node_message:" + node_1.id, "Event should have occurred")
+            self.assertEqual(
+                message[5],
+                f"node_message:{node_2.id}",
+                "Event should have occurred",
+            )
+            self.assertEqual(
+                message[4],
+                f"node_message:{node_1.id}",
+                "Event should have occurred",
+            )
 
-        self.assertEqual(message[6],  "node_message:" + node_0.id, "Event should have occurred")
-        self.assertEqual(message[7],  "node_message:" + node_0.id, "Event should have occurred")
-        self.assertEqual(message[8],  "node_request_to_stop:" + node_0.id, "Event should have occurred")
-        self.assertEqual(message[9],  "node_request_to_stop:" + node_1.id, "Event should have occurred")
-        self.assertEqual(message[10], "node_request_to_stop:" + node_2.id, "Event should have occurred")
+        self.assertEqual(
+            message[6], f"node_message:{node_0.id}", "Event should have occurred"
+        )
+        self.assertEqual(
+            message[7], f"node_message:{node_0.id}", "Event should have occurred"
+        )
+        self.assertEqual(
+            message[8],
+            f"node_request_to_stop:{node_0.id}",
+            "Event should have occurred",
+        )
+        self.assertEqual(
+            message[9],
+            f"node_request_to_stop:{node_1.id}",
+            "Event should have occurred",
+        )
+        self.assertEqual(
+            message[10],
+            f"node_request_to_stop:{node_2.id}",
+            "Event should have occurred",
+        )
 
         self.assertIn("disconnected", message[11], "Message should contain a disconnection message")
         self.assertIn("disconnected", message[12], "Message should contain a disconnection message")
@@ -275,7 +385,9 @@ class TestNode(unittest.TestCase):
         global message
         message = []
 
-        class MyTestNode (Node):
+
+
+        class MyTestNode(Node):
             def __init__(self, host, port):
                 super(MyTestNode, self).__init__(host, port, None)
                 global message
@@ -283,31 +395,32 @@ class TestNode(unittest.TestCase):
 
             def outbound_node_connected(self, node):
                 global message
-                message.append("outbound_node_connected: " + node.id)
-                
+                message.append(f"outbound_node_connected: {node.id}")
+
             def inbound_node_connected(self, node):
                 global message
-                message.append("inbound_node_connected: " + node.id)
+                message.append(f"inbound_node_connected: {node.id}")
 
             def inbound_node_disconnected(self, node):
                 global message
-                message.append("inbound_node_disconnected: " + node.id)
+                message.append(f"inbound_node_disconnected: {node.id}")
 
             def outbound_node_disconnected(self, node):
                 global message
-                message.append("outbound_node_disconnected: " + node.id)
+                message.append(f"outbound_node_disconnected: {node.id}")
 
             def node_message(self, node, data):
                 global message
-                message.append("node_message from " + node.id + ": " + str(data))
-                
+                message.append(f"node_message from {node.id}: {str(data)}")
+
             def node_disconnect_with_outbound_node(self, node):
                 global message
-                message.append("node wants to disconnect with oher outbound node: " + node.id)
-                
+                message.append(f"node wants to disconnect with other outbound node: {node.id}")
+
             def node_request_to_stop(self):
                 global message
                 message.append("node is requested to stop!")
+
 
         node1 = MyTestNode(host="127.0.0.1", port=10001)
         node2 = MyTestNode(host="127.0.0.1", port=10002)
@@ -343,30 +456,88 @@ class TestNode(unittest.TestCase):
         dt = "\n".join(message)
 
         self.assertTrue(len(message) > 0, "There should have been sent some messages around!")
-        self.assertTrue(len(message) == 18, "There should have been sent 18 message around! " + str(len(message)) + " messages\n" + dt)
+        self.assertTrue(
+            len(message) == 18,
+            (
+                (
+                    f"There should have been sent 18 message around! {len(message)}"
+                    + " messages\n"
+                )
+                + dt
+            ),
+        )
 
         self.assertEqual(message[0],  "mytestnode started", "MyTestNode should have seen this event!")
         self.assertEqual(message[1],  "mytestnode started", "MyTestNode should have seen this event!")
         self.assertEqual(message[2],  "mytestnode started", "MyTestNode should have seen this event!")
 
+# sourcery skip: no-conditionals-in-tests
         if "inbound" in message[3]:
-            self.assertEqual(message[3],  "inbound_node_connected: " + node1.id, "MyTestNode should have seen this event!")
-            self.assertEqual(message[4],  "outbound_node_connected: " + node2.id, "MyTestNode should have seen this event!")
+            self.assertEqual(
+                message[3],
+                f"inbound_node_connected: {node1.id}",
+                "MyTestNode should have seen this event!",
+            )
+            self.assertEqual(
+                message[4],
+                f"outbound_node_connected: {node2.id}",
+                "MyTestNode should have seen this event!",
+            )
         else:
-            self.assertEqual(message[4],  "inbound_node_connected: " + node1.id, "MyTestNode should have seen this event!")
-            self.assertEqual(message[3],  "outbound_node_connected: " + node2.id, "MyTestNode should have seen this event!")
+            self.assertEqual(
+                message[4],
+                f"inbound_node_connected: {node1.id}",
+                "MyTestNode should have seen this event!",
+            )
+            self.assertEqual(
+                message[3],
+                f"outbound_node_connected: {node2.id}",
+                "MyTestNode should have seen this event!",
+            )
 
         if "outbound" in message[5]:
-            self.assertEqual(message[5],  "outbound_node_connected: " + node1.id, "MyTestNode should have seen this event!")
-            self.assertEqual(message[6],  "inbound_node_connected: " + node3.id, "MyTestNode should have seen this event!")
+            self.assertEqual(
+                message[5],
+                f"outbound_node_connected: {node1.id}",
+                "MyTestNode should have seen this event!",
+            )
+            self.assertEqual(
+                message[6],
+                f"inbound_node_connected: {node3.id}",
+                "MyTestNode should have seen this event!",
+            )
         else:
-            self.assertEqual(message[6],  "outbound_node_connected: " + node1.id, "MyTestNode should have seen this event!")
-            self.assertEqual(message[5],  "inbound_node_connected: " + node3.id, "MyTestNode should have seen this event!")
+            self.assertEqual(
+                message[6],
+                f"outbound_node_connected: {node1.id}",
+                "MyTestNode should have seen this event!",
+            )
+            self.assertEqual(
+                message[5],
+                f"inbound_node_connected: {node3.id}",
+                "MyTestNode should have seen this event!",
+            )
 
-        self.assertEqual(message[7],  "node_message from " + node1.id + ": hello from node 1", "MyTestNode should have seen this event!")
-        self.assertEqual(message[8],  "node_message from " + node1.id + ": hello from node 1", "MyTestNode should have seen this event!")
-        self.assertEqual(message[9],  "node_message from " + node2.id + ": hello from node 2", "MyTestNode should have seen this event!")
-        self.assertEqual(message[10],  "node_message from " + node3.id + ": hello from node 3", "MyTestNode should have seen this event!")
+        self.assertEqual(
+            message[7],
+            f"node_message from {node1.id}: hello from node 1",
+            "MyTestNode should have seen this event!",
+        )
+        self.assertEqual(
+            message[8],
+            f"node_message from {node1.id}: hello from node 1",
+            "MyTestNode should have seen this event!",
+        )
+        self.assertEqual(
+            message[9],
+            f"node_message from {node2.id}: hello from node 2",
+            "MyTestNode should have seen this event!",
+        )
+        self.assertEqual(
+            message[10],
+            f"node_message from {node3.id}: hello from node 3",
+            "MyTestNode should have seen this event!",
+        )
 
         self.assertEqual(message[11],  "node is requested to stop!", "MyTestNode should have seen this event!")
         self.assertEqual(message[12],  "node is requested to stop!", "MyTestNode should have seen this event!")
@@ -386,7 +557,7 @@ class TestNode(unittest.TestCase):
         # Using the callback we are able to see the events and messages of the Node
         def node_callback(event, main_node, connected_node, data):
             global message
-            message.append(event + ":" + main_node.id)                
+            message.append(f"{event}:{main_node.id}")                
 
         node_0 = Node(host='127.0.0.1', port=10000, callback=node_callback, max_connections=1) # max connection of 1
         node_1 = Node(host='127.0.0.1', port=10001, callback=node_callback, max_connections=2) # max connection of 2
@@ -445,7 +616,7 @@ class TestNode(unittest.TestCase):
         # Using the callback we are able to see the events and messages of the Node
         def node_callback(event, main_node, connected_node, data):
             global message
-            message.append(event + ":" + main_node.id)                
+            message.append(f"{event}:{main_node.id}")                
 
         node_0 = Node(host='127.0.0.1', port=10000, id="thisisanidtest", callback=node_callback)
         node_1 = Node(host='127.0.0.1', port=10001, callback=node_callback)
@@ -460,7 +631,7 @@ class TestNode(unittest.TestCase):
         node_1.join()
 
         # Perform the asserts!
-        self.assertEqual(node_0.id, "thisisanidtest", "Node 0 shoud have id \"thisisanidtest\"")
+        self.assertEqual(node_0.id, "thisisanidtest", "Node 0 should have id \"thisisanidtest\"")
         self.assertNotEqual(node_1.id, "thisisanidtest", "Node 1 should have a different id than node 0")
         self.assertNotEqual(node_1.id, None, "The ID pf node 1 should not be equal to None")
 

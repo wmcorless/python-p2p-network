@@ -3,7 +3,7 @@
 # Version: 0.1 beta (use at your own risk)                                                                            #
 #                                                                                                                     #
 # This example show how to create your own peer 2 peer network using the callback. So, you do not need to implement   #
-# a new class. However, it is adviced to implement your own class rather than use the callback. Callback will get you #
+# a new class. However, it is advised to implement your own class rather than use the callback. Callback will get you #
 # a big and large method implementation.                                                                              #
 #######################################################################################################################
 
@@ -21,7 +21,9 @@ from p2pnetwork.node import Node
 def node_callback(event, main_node, connected_node, data):
     try:
         if event != 'node_request_to_stop': # node_request_to_stop does not have any connected_node, while it is the main_node that is stopping!
-            print('Event: {} from main node {}: connected node {}: {}'.format(event, main_node.id, connected_node.id, data))
+            print(
+                f'Event: {event} from main node {main_node.id}: connected node {connected_node.id}: {data}'
+            )
 
     except Exception as e:
         print(e)

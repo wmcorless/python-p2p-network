@@ -2,7 +2,10 @@ import socket
 import time
 import threading
 import json
-import zlib, bz2, lzma, base64
+import zlib
+import bz2
+import lzma
+import base64
 
 """
 Author : Maurice Snoeren <macsnoeren(at)gmail.com>
@@ -23,7 +26,7 @@ class NodeConnection(threading.Thread):
        Instantiates a new NodeConnection. Do not forget to start the thread. All TCP/IP communication is handled by this 
        connection.
         main_node: The Node class that received a connection.
-        sock: The socket that is assiociated with the client connection.
+        sock: The socket that is associated with the client connection.
         id: The id of the connected node (at the other side of the TCP/IP connection).
         host: The host/ip of the main node.
         port: The port of the server of the main node."""
@@ -31,7 +34,7 @@ class NodeConnection(threading.Thread):
     def __init__(self, main_node, sock, id, host, port):
         """Instantiates a new NodeConnection. Do not forget to start the thread. All TCP/IP communication is handled by this connection.
             main_node: The Node class that received a connection.
-            sock: The socket that is assiociated with the client connection.
+            sock: The socket that is associated with the client connection.
             id: The id of the connected node (at the other side of the TCP/IP connection).
             host: The host/ip of the main node.
             port: The port of the server of the main node."""
@@ -58,15 +61,16 @@ class NodeConnection(threading.Thread):
         self.sock.settimeout(10.0)
 
         self.main_node.debug_print(
-            "NodeConnection: Started with client (" + self.id + ") '" + self.host + ":" + str(self.port) + "'")
+            f"NodeConnection: Started with client ({self.id}) '{self.host}:{str(self.port)}'"
+        )
         super(NodeConnection, self).__init__()
 
     def compress(self, data, compression):
         """Compresses the data given the type. It is used to provide compression to lower the network traffic in case of
            large data chunks. It stores the compression type inside the data, so it can be easily retrieved."""
 
-        self.main_node.debug_print(self.id + ":compress:" + compression)
-        self.main_node.debug_print(self.id + ":compress:input: " + str(data))
+        self.main_node.debug_print(f"{self.id}:compress:{compression}")
+        self.main_node.debug_print(f"{self.id}:compress:input: {str(data)}")
 
         compressed = data
 
@@ -81,38 +85,42 @@ class NodeConnection(threading.Thread):
                 compressed = base64.b64encode(lzma.compress(data) + b'lzma')
 
             else:
-                self.main_node.debug_print(self.id + ":compress:Unknown compression")
+                self.main_node.debug_print(f"{self.id}:compress:Unknown compression")
                 return None
 
         except Exception as e:
-            self.main_node.debug_print("compress: exception: " + str(e))
+            self.main_node.debug_print(f"compress: exception: {str(e)}")
 
-        self.main_node.debug_print(self.id + ":compress:b64encode:" + str(compressed))
+        self.main_node.debug_print(f"{self.id}:compress:b64encode:{str(compressed)}")
         self.main_node.debug_print(
-            self.id + ":compress:compression:" + str(int(10000 * len(compressed) / len(data)) / 100) + "%")
+            f"{self.id}:compress:compression:{str(int(10000 * len(compressed) / len(data)) / 100)}"
+            + "%"
+        )
 
         return compressed
 
     def decompress(self, compressed):
         """Decompresses the data given the type. It is used to provide compression to lower the network traffic in case of
            large data chunks."""
-        self.main_node.debug_print(self.id + ":decompress:input: " + str(compressed))
+        self.main_node.debug_print(f"{self.id}:decompress:input: {str(compressed)}")
         compressed = base64.b64decode(compressed)
-        self.main_node.debug_print(self.id + ":decompress:b64decode: " + str(compressed))
+        self.main_node.debug_print(
+            f"{self.id}:decompress:b64decode: {str(compressed)}"
+        )
 
         try:
             if compressed[-4:] == b'zlib':
-                compressed = zlib.decompress(compressed[0:len(compressed) - 4])
+                compressed = zlib.decompress(compressed[:len(compressed) - 4])
 
             elif compressed[-5:] == b'bzip2':
-                compressed = bz2.decompress(compressed[0:len(compressed) - 5])
+                compressed = bz2.decompress(compressed[:len(compressed) - 5])
 
             elif compressed[-4:] == b'lzma':
-                compressed = lzma.decompress(compressed[0:len(compressed) - 4])
+                compressed = lzma.decompress(compressed[:len(compressed) - 4])
         except Exception as e:
-            print("Exception: " + str(e))
+            print(f"Exception: {str(e)}")
 
-        self.main_node.debug_print(self.id + ":decompress:result: " + str(compressed))
+        self.main_node.debug_print(f"{self.id}:decompress:result: {str(compressed)}")
 
         return compressed
 
@@ -121,7 +129,7 @@ class NodeConnection(threading.Thread):
            When sending bytes object, it will be using standard socket communication. A end of transmission character 0x04 
            utf-8/ascii will be used to decode the packets ate the other node. When the socket is corrupted the node connection
            is closed. Compression can be enabled by using zlib, bzip2 or lzma. When enabled the data is compressed and send to
-           the client. This could reduce the network bandwith when sending large data chunks.
+           the client. This could reduce the network bandwidth when sending large data chunks.
            """
         if isinstance(data, str):
             try:
@@ -129,11 +137,13 @@ class NodeConnection(threading.Thread):
                     self.sock.sendall(data.encode(encoding_type) + self.EOT_CHAR)
                 else:
                     data = self.compress(data.encode(encoding_type), compression)
-                    if data != None:
+                    if data is not None:
                         self.sock.sendall(data + self.COMPR_CHAR + self.EOT_CHAR)
 
             except Exception as e:  # Fixed issue #19: When sending is corrupted, close the connection
-                self.main_node.debug_print("nodeconnection send: Error sending data to node: " + str(e))
+                self.main_node.debug_print(
+                    f"nodeconnection send: Error sending data to node: {str(e)}"
+                )
                 self.stop()  # Stopping node due to failure
 
         elif isinstance(data, dict):
@@ -142,7 +152,7 @@ class NodeConnection(threading.Thread):
                     self.sock.sendall(json.dumps(data).encode(encoding_type) + self.EOT_CHAR)
                 else:
                     data = self.compress(json.dumps(data).encode(encoding_type), compression)
-                    if data != None:
+                    if data is not None:
                         self.sock.sendall(data + self.COMPR_CHAR + self.EOT_CHAR)
 
             except TypeError as type_error:
@@ -150,7 +160,9 @@ class NodeConnection(threading.Thread):
                 self.main_node.debug_print(type_error)
 
             except Exception as e:  # Fixed issue #19: When sending is corrupted, close the connection
-                self.main_node.debug_print("nodeconnection send: Error sending data to node: " + str(e))
+                self.main_node.debug_print(
+                    f"nodeconnection send: Error sending data to node: {str(e)}"
+                )
                 self.stop()  # Stopping node due to failure
 
         elif isinstance(data, bytes):
@@ -159,25 +171,27 @@ class NodeConnection(threading.Thread):
                     self.sock.sendall(data + self.EOT_CHAR)
                 else:
                     data = self.compress(data, compression)
-                    if data != None:
+                    if data is not None:
                         self.sock.sendall(data + self.COMPR_CHAR + self.EOT_CHAR)
 
             except Exception as e:  # Fixed issue #19: When sending is corrupted, close the connection
-                self.main_node.debug_print("nodeconnection send: Error sending data to node: " + str(e))
+                self.main_node.debug_print(
+                    f"nodeconnection send: Error sending data to node: {str(e)}"
+                )
                 self.stop()  # Stopping node due to failure
 
         else:
-            self.main_node.debug_print('datatype used is not valid plese use str, dict (will be send as json) or bytes')
+            self.main_node.debug_print('datatype used is not valid please use str, dict (will be send as json) or bytes')
 
     def stop(self):
         """Terminates the connection and the thread is stopped. Stop the node client. Please make sure you join the thread."""
         self.terminate_flag.set()
 
     def parse_packet(self, packet):
-        """Parse the packet and determines wheter it has been send in str, json or byte format. It returns
+        """Parse the packet and determines whether it has been send in str, json or byte format. It returns
            the according data."""
         if packet.find(self.COMPR_CHAR) == len(packet) - 1:  # Check if packet was compressed
-            packet = self.decompress(packet[0:-1])
+            packet = self.decompress(packet[:-1])
 
         try:
             packet_decoded = packet.decode('utf-8')
@@ -232,7 +246,7 @@ class NodeConnection(threading.Thread):
         self.sock.settimeout(None)
         self.sock.close()
         self.main_node.node_disconnected(
-            self)  # Fixed issue #19: Send to main_node when a node is disconnected. We do not know whether it is inbounc or outbound.
+            self)  # Fixed issue #19: Send to main_node when a node is disconnected. We do not know whether it is inbound or outbound.
         self.main_node.debug_print("NodeConnection: Stopped")
 
     def set_info(self, key, value):
@@ -242,12 +256,10 @@ class NodeConnection(threading.Thread):
         return self.info[key]
 
     def __str__(self):
-        return 'NodeConnection: {}:{} <-> {}:{} ({})'.format(self.main_node.host, self.main_node.port, self.host,
-                                                             self.port, self.id)
+        return f'NodeConnection: {self.main_node.host}:{self.main_node.port} <-> {self.host}:{self.port} ({self.id})'
 
     def __repr__(self):
-        return '<NodeConnection: Node {}:{} <-> Connection {}:{}>'.format(self.main_node.host, self.main_node.port,
-                                                                          self.host, self.port)
+        return f'<NodeConnection: Node {self.main_node.host}:{self.main_node.port} <-> Connection {self.host}:{self.port}>'
 
     def __hash__(self):
         return hash(self.main_node.id + self.id)
